@@ -4,8 +4,8 @@ FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
 ARG BUILD_DATE
 ARG VERSION
 ARG FIREFOX_VERSION
-LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-LABEL maintainer="thelamer"
+LABEL build_version="Careful Computer version:- ${VERSION} Build-date:- ${BUILD_DATE}"
+LABEL maintainer="carefulcomputer"
 
 # title
 ENV TITLE=Firefox
