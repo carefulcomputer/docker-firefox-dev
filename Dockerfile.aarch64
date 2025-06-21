@@ -27,16 +27,18 @@ RUN \
     /etc/apt/sources.list.d/firefox.list && \
   apt-get update && \
   apt-get install -y --no-install-recommends \
-    firefox \
-    ^firefox-locale && \
+    firefox-esr \
+    ^firefox-esr-locale && \
   echo "**** default firefox settings ****" && \
-  FIREFOX_SETTING="/usr/lib/firefox/browser/defaults/preferences/firefox.js" && \
+  FIREFOX_SETTING="/usr/lib/firefox-esr/browser/defaults/preferences/firefox.js" && \
   echo 'pref("datareporting.policy.firstRunURL", "");' > ${FIREFOX_SETTING} && \
   echo 'pref("datareporting.policy.dataSubmissionEnabled", false);' >> ${FIREFOX_SETTING} && \
   echo 'pref("datareporting.healthreport.service.enabled", false);' >> ${FIREFOX_SETTING} && \
   echo 'pref("datareporting.healthreport.uploadEnabled", false);' >> ${FIREFOX_SETTING} && \
   echo 'pref("trailhead.firstrun.branches", "nofirstrun-empty");' >> ${FIREFOX_SETTING} && \
   echo 'pref("browser.aboutwelcome.enabled", false);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("xpinstall.signatures.required", false);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("extensions.langpacks.signatures.required", false);' >> ${FIREFOX_SETTING} && \
   echo "**** cleanup ****" && \
   rm -rf \
     /tmp/*
