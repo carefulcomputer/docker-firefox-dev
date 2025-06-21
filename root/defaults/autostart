@@ -1,1 +1,1 @@
-firefox-esr ${FIREFOX_CLI}
+firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}
