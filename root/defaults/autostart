@@ -1,1 +1,1 @@
-firefox ${FIREFOX_CLI}
+firefox-esr ${FIREFOX_CLI}
