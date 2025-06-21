@@ -46,8 +46,19 @@ This image comes pre-configured with the following Firefox preferences to allow 
 * `xpinstall.signatures.required = false` - Allows installation of unsigned extensions
 * `extensions.langpacks.signatures.required = false` - Allows unsigned language packs
 
+### Experimental Extension Features
+
+This image also enables experimental extension features for advanced development and testing:
+
+* `extensions.experiments.enabled = true` - Enables experimental extension APIs
+* `extensions.webextensions.restrictedDomains = ""` - Removes domain restrictions for WebExtensions
+* `devtools.chrome.enabled = true` - Enables advanced developer tools
+* `devtools.debugger.remote-enabled = true` - Enables remote debugging capabilities
+* `extensions.webextensions.keepStorageOnUninstall = true` - Preserves extension storage on uninstall
+* `extensions.webextensions.keepUuidOnUninstall = true` - Preserves extension UUID on uninstall
+
 >[!WARNING]
->**Security Notice**: Allowing unsigned extensions reduces security as these extensions haven't been reviewed by Mozilla. Only install extensions from trusted sources.
+>**Security Notice**: Allowing unsigned extensions and experimental features reduces security as these extensions haven't been reviewed by Mozilla and may have access to additional APIs. Only install extensions from trusted sources and use experimental features in development environments.
 
 ### Installing Unsigned Extensions
 

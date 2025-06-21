@@ -39,6 +39,12 @@ RUN \
   echo 'pref("browser.aboutwelcome.enabled", false);' >> ${FIREFOX_SETTING} && \
   echo 'pref("xpinstall.signatures.required", false);' >> ${FIREFOX_SETTING} && \
   echo 'pref("extensions.langpacks.signatures.required", false);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("extensions.experiments.enabled", true);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("extensions.webextensions.restrictedDomains", "");' >> ${FIREFOX_SETTING} && \
+  echo 'pref("devtools.chrome.enabled", true);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("devtools.debugger.remote-enabled", true);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("extensions.webextensions.keepStorageOnUninstall", true);' >> ${FIREFOX_SETTING} && \
+  echo 'pref("extensions.webextensions.keepUuidOnUninstall", true);' >> ${FIREFOX_SETTING} && \
   echo "**** cleanup ****" && \
   rm -rf \
     /tmp/*
