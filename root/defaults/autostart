@@ -1,24 +1,20 @@
-# Debug: Log environment and user info
-echo "=== Firefox Autostart Debug ===" >> /tmp/autostart-debug.log
-echo "User: $(whoami)" >> /tmp/autostart-debug.log
-echo "Home: $HOME" >> /tmp/autostart-debug.log
-echo "Display: $DISPLAY" >> /tmp/autostart-debug.log
-echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR" >> /tmp/autostart-debug.log
-echo "PWD: $PWD" >> /tmp/autostart-debug.log
-date >> /tmp/autostart-debug.log
+#!/bin/bash
+echo "Autostart running as: $(whoami)" > /tmp/autostart-debug.log
 
-# Set up XDG environment if not set
-export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/runtime-abc}
-export XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-/config/.config}
-export XDG_DATA_HOME=${XDG_DATA_HOME:-/config/.local/share}
-export XDG_CACHE_HOME=${XDG_CACHE_HOME:-/config/.cache}
+# Create runtime directory as root with proper ownership
+mkdir -p /tmp/runtime-abc
+chown abc:abc /tmp/runtime-abc
+chmod 700 /tmp/runtime-abc
 
-# Create directories
-mkdir -p "$XDG_RUNTIME_DIR" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-chmod 700 "$XDG_RUNTIME_DIR" 2>/dev/null || true
+su - abc -c '
+export DISPLAY=:1
+export XDG_RUNTIME_DIR=/tmp/runtime-abc
+export XDG_CONFIG_HOME=/config/.config
+export XDG_DATA_HOME=/config/.local/share  
+export XDG_CACHE_HOME=/config/.cache
 
-# Log what we're about to run
-echo "Running: firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}" >> /tmp/autostart-debug.log
+# Create remaining directories
+mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
 
-# Start Firefox ESR
 firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}
+'

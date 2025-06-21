@@ -10,12 +10,6 @@ LABEL maintainer="carefulcomputer"
 # title
 ENV TITLE=Firefox
 
-# Set XDG environment variables for proper Firefox runtime
-ENV XDG_RUNTIME_DIR=/tmp/runtime-abc
-ENV XDG_CONFIG_HOME=/config/.config
-ENV XDG_DATA_HOME=/config/.local/share
-ENV XDG_CACHE_HOME=/config/.cache
-
 # prevent Ubuntu's firefox stub from being installed
 COPY /root/etc/apt/preferences.d/firefox-no-snap /etc/apt/preferences.d/firefox-no-snap
 
