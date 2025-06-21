@@ -1,5 +1,6 @@
 #!/bin/bash
-echo "Autostart running as: $(whoami)" > /tmp/autostart-debug.log
+# Use /config for debug log instead of /tmp (better permissions)
+echo "Autostart running as: $(whoami)" > /config/autostart-debug.log
 
 # Create runtime directory as root with proper ownership
 mkdir -p /tmp/runtime-abc
@@ -8,7 +9,7 @@ chmod 700 /tmp/runtime-abc
 
 # Method 1: Try runuser first
 if command -v runuser >/dev/null 2>&1; then
-    echo "Using runuser method" >> /tmp/autostart-debug.log
+    echo "Using runuser method" >> /config/autostart-debug.log
     runuser -l abc -c '
     export DISPLAY=:1
     export XDG_RUNTIME_DIR=/tmp/runtime-abc
@@ -20,7 +21,7 @@ if command -v runuser >/dev/null 2>&1; then
     '
 # Method 2: Fall back to s6-setuidgid
 elif command -v s6-setuidgid >/dev/null 2>&1; then
-    echo "Using s6-setuidgid method" >> /tmp/autostart-debug.log
+    echo "Using s6-setuidgid method" >> /config/autostart-debug.log
     cd /config
     s6-setuidgid abc bash -c '
     export DISPLAY=:1
@@ -32,5 +33,5 @@ elif command -v s6-setuidgid >/dev/null 2>&1; then
     firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}
     '
 else
-    echo "ERROR: No suitable user switching method found" >> /tmp/autostart-debug.log
+    echo "ERROR: No suitable user switching method found" >> /config/autostart-debug.log
 fi
