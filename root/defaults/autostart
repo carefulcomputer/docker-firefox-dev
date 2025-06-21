@@ -1,37 +1,20 @@
 #!/bin/bash
-# Use /config for debug log instead of /tmp (better permissions)
+# Debug: Log current user and environment
 echo "Autostart running as: $(whoami)" > /config/autostart-debug.log
+echo "Home: $HOME" >> /config/autostart-debug.log
+echo "Display: $DISPLAY" >> /config/autostart-debug.log
 
-# Create runtime directory as root with proper ownership
-mkdir -p /tmp/runtime-abc
-chown abc:abc /tmp/runtime-abc
-chmod 700 /tmp/runtime-abc
+# Set up XDG environment variables
+export XDG_RUNTIME_DIR=/tmp/runtime-abc
+export XDG_CONFIG_HOME=/config/.config
+export XDG_DATA_HOME=/config/.local/share  
+export XDG_CACHE_HOME=/config/.cache
 
-# Method 1: Try runuser first
-if command -v runuser >/dev/null 2>&1; then
-    echo "Using runuser method" >> /config/autostart-debug.log
-    runuser -l abc -c '
-    export DISPLAY=:1
-    export XDG_RUNTIME_DIR=/tmp/runtime-abc
-    export XDG_CONFIG_HOME=/config/.config
-    export XDG_DATA_HOME=/config/.local/share  
-    export XDG_CACHE_HOME=/config/.cache
-    mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-    firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}
-    '
-# Method 2: Fall back to s6-setuidgid
-elif command -v s6-setuidgid >/dev/null 2>&1; then
-    echo "Using s6-setuidgid method" >> /config/autostart-debug.log
-    cd /config
-    s6-setuidgid abc bash -c '
-    export DISPLAY=:1
-    export XDG_RUNTIME_DIR=/tmp/runtime-abc
-    export XDG_CONFIG_HOME=/config/.config
-    export XDG_DATA_HOME=/config/.local/share  
-    export XDG_CACHE_HOME=/config/.cache
-    mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-    firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}
-    '
-else
-    echo "ERROR: No suitable user switching method found" >> /config/autostart-debug.log
-fi
+# Create directories (as abc user)
+mkdir -p "$XDG_RUNTIME_DIR" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+chmod 700 "$XDG_RUNTIME_DIR"
+
+echo "Starting Firefox ESR as $(whoami)" >> /config/autostart-debug.log
+
+# Run Firefox ESR directly (already running as abc user)
+firefox-esr --no-sandbox --disable-gpu-sandbox --disable-software-rasterizer ${FIREFOX_CLI}
