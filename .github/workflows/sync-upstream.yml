@@ -86,6 +86,8 @@ jobs:
 
       - name: Build and push by digest
         id: build
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD_DISABLED: true
         uses: docker/build-push-action@v7
         with:
           context: .
