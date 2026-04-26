@@ -1,6 +1,9 @@
-name: Check Firefox ESR and Build
+name: Build and Push Firefox ESR
 
 on:
+  push:
+    branches: [main]
+    paths-ignore: ['.firefox-esr-version']
   schedule:
     - cron: '0 2 * * *'  # Daily at 2 AM UTC
   workflow_dispatch:
@@ -9,54 +12,49 @@ env:
   IMAGE_NAME: firefox-esr
 
 jobs:
-  check-version:
+  check:
     runs-on: ubuntu-latest
     outputs:
-      needs_build: ${{ steps.check.outputs.needs_build }}
-      version: ${{ steps.version.outputs.version }}
+      needs_build: ${{ steps.decide.outputs.needs_build }}
+      version: ${{ steps.decide.outputs.version }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Get latest Firefox ESR version from Mozilla PPA
-        id: version
+      - name: Decide whether to build
+        id: decide
         run: |
-          RAW=$(curl -sL https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu/dists/noble/main/binary-amd64/Packages.gz \
-            | gunzip \
-            | grep -A 7 -m 1 'Package: firefox-esr' \
-            | awk -F ': ' '/Version/{print $2;exit}')
-
-          if [ -z "$RAW" ]; then
-            echo "::error::Could not retrieve Firefox ESR version from PPA"
-            exit 1
-          fi
-
-          # Extract clean version: handles both 115.0esr and 140.10.0esr formats
-          CLEAN=$(echo "$RAW" | grep -oP '\d+\.\d+(\.\d+)?' | head -1)
-          if [ -z "$CLEAN" ]; then
-            echo "::error::Could not parse version from PPA string: ${RAW}"
-            exit 1
-          fi
-          echo "raw=${RAW}" >> $GITHUB_OUTPUT
-          echo "version=${CLEAN}" >> $GITHUB_OUTPUT
-          echo "Firefox ESR latest: ${CLEAN} (raw: ${RAW})"
-
-      - name: Check if already built this version
-        id: check
-        run: |
-          LAST=$(cat .firefox-esr-version 2>/dev/null || echo "none")
-          CURRENT="${{ steps.version.outputs.version }}"
-          echo "Last built: ${LAST} | Available: ${CURRENT}"
-          if [ "$LAST" = "$CURRENT" ]; then
-            echo "needs_build=false" >> $GITHUB_OUTPUT
-          else
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # Code change — always rebuild
             echo "needs_build=true" >> $GITHUB_OUTPUT
+            echo "version=" >> $GITHUB_OUTPUT
+          else
+            # Scheduled/manual — only build if new Firefox ESR version in PPA
+            RAW=$(curl -sL https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu/dists/noble/main/binary-amd64/Packages.gz \
+              | gunzip | grep -A 7 -m 1 'Package: firefox-esr' | awk -F ': ' '/Version/{print $2;exit}')
+            if [ -z "$RAW" ]; then
+              echo "::error::Could not retrieve Firefox ESR version from PPA"
+              exit 1
+            fi
+            CLEAN=$(echo "$RAW" | grep -oP '\d+\.\d+(\.\d+)?' | head -1)
+            if [ -z "$CLEAN" ]; then
+              echo "::error::Could not parse version from PPA string: ${RAW}"
+              exit 1
+            fi
+            LAST=$(cat .firefox-esr-version 2>/dev/null || echo "none")
+            echo "Last built: ${LAST} | Available: ${CLEAN}"
+            echo "version=${CLEAN}" >> $GITHUB_OUTPUT
+            if [ "$LAST" = "$CLEAN" ]; then
+              echo "needs_build=false" >> $GITHUB_OUTPUT
+            else
+              echo "needs_build=true" >> $GITHUB_OUTPUT
+            fi
           fi
 
   build:
-    needs: check-version
-    if: needs.check-version.outputs.needs_build == 'true'
+    needs: check
+    if: needs.check.outputs.needs_build == 'true'
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
@@ -74,7 +72,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Sanitize platform name for cache key
+      - name: Set platform pair
         run: echo "PLATFORM_PAIR=${{ matrix.platform == 'linux/amd64' && 'linux-amd64' || 'linux-arm64' }}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
@@ -112,7 +110,7 @@ jobs:
           retention-days: 1
 
   merge:
-    needs: [check-version, build]
+    needs: [check, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -140,17 +138,20 @@ jobs:
       - name: Create and push multi-platform manifest
         run: |
           IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}"
-          VERSION="${{ needs.check-version.outputs.version }}"
-          docker buildx imagetools create \
-            -t "${IMAGE}:latest" \
-            -t "${IMAGE}:${VERSION}" \
+          VERSION="${{ needs.check.outputs.version }}"
+          TAGS="-t ${IMAGE}:latest"
+          if [ -n "$VERSION" ]; then
+            TAGS="$TAGS -t ${IMAGE}:${VERSION}"
+          fi
+          docker buildx imagetools create $TAGS \
             $(printf "${IMAGE}@sha256:%s " $(ls /tmp/digests))
 
       - name: Record built version
+        if: needs.check.outputs.version != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          echo "${{ needs.check-version.outputs.version }}" > .firefox-esr-version
+          echo "${{ needs.check.outputs.version }}" > .firefox-esr-version
           git add .firefox-esr-version
-          git commit -m "chore: built firefox-esr ${{ needs.check-version.outputs.version }}"
+          git commit -m "chore: built firefox-esr ${{ needs.check.outputs.version }}"
           git push origin main
