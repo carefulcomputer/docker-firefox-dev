@@ -27,8 +27,7 @@ RUN \
     /etc/apt/sources.list.d/firefox.list && \
   apt-get update && \
   apt-get install -y --no-install-recommends \
-    firefox-esr \
-    ^firefox-esr-locale && \
+    firefox-esr && \
   echo "**** default firefox settings ****" && \
   FIREFOX_SETTING="/usr/lib/firefox-esr/browser/defaults/preferences/firefox.js" && \
   echo 'pref("datareporting.policy.firstRunURL", "");' > ${FIREFOX_SETTING} && \

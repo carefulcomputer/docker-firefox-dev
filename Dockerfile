@@ -28,7 +28,6 @@ RUN \
   apt-get update && \
   apt-get install -y --no-install-recommends \
     firefox-esr \
-    ^firefox-esr-locale \
     python3-xdg && \
   echo "**** default firefox settings ****" && \
   FIREFOX_SETTING="/usr/lib/firefox-esr/browser/defaults/preferences/firefox.js" && \
