@@ -6,6 +6,8 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - '.firefox-esr-version'  # bot commit from sync-upstream.yml; build already done
   pull_request:
     branches:
       - main
@@ -52,7 +54,7 @@ jobs:
           type=semver,pattern={{major}}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: ./Dockerfile
