@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Decide whether to build
         id: decide
@@ -70,7 +70,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set platform pair
         run: echo "PLATFORM_PAIR=${{ matrix.platform == 'linux/amd64' && 'linux-amd64' || 'linux-arm64' }}" >> $GITHUB_ENV
@@ -104,7 +104,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digest-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
@@ -119,10 +119,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: /tmp/digests
           pattern: digest-*
