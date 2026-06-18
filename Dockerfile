@@ -19,9 +19,8 @@ RUN \
     /kclient/public/icon.png \
     https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/firefox-logo.png && \
   echo "**** install packages ****" && \
-  apt-key adv \
-    --keyserver hkp://keyserver.ubuntu.com:80 \
-    --recv-keys 738BEB9321D1AAEC13EA9391AEBDF4819BE21867 && \
+ curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x738BEB9321D1AAEC13EA9391AEBDF4819BE21867" \
+    | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam.gpg && \
   echo \
     "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu noble main" > \
     /etc/apt/sources.list.d/firefox.list && \
